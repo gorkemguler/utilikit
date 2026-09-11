@@ -1,0 +1,94 @@
+---
+- name: OS packages
+  ansible.builtin.apt:
+    name: [git, python3, python3-venv, python3-dev, build-essential, curl, ca-certificates, libzbar0]
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Service user
+  ansible.builtin.user:
+    name: utilikit
+    system: true
+    home: /opt/utilikit
+    shell: /usr/sbin/nologin
+    create_home: false
+
+- name: Directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+    mode: "{{ item.mode | default('0755') }}"
+  loop:
+    - { path: /opt/utilikit }
+    - { path: /etc/utilikit, mode: "0750", group: utilikit }
+    - { path: /var/lib/utilikit, owner: utilikit, group: utilikit }
+    - { path: /opt/utilikit/ms-playwright, owner: utilikit, group: utilikit }
+
+- name: Clone / update source
+  ansible.builtin.git:
+    repo: "{{ utilikit_repo_url }}"
+    dest: /opt/utilikit/src
+    version: "{{ utilikit_ref | default('main') }}"
+    depth: 1
+  notify: restart utilikit
+
+- name: Install package (+ extras)
+  ansible.builtin.pip:
+    name: "/opt/utilikit/src[{{ 'browser,decode' if utilikit_with_browser | default(true) | bool else 'decode' }}]"
+    virtualenv: /opt/utilikit/venv
+    virtualenv_command: python3 -m venv
+    extra_args: --upgrade
+  notify: restart utilikit
+
+- name: Download Chromium for Playwright
+  ansible.builtin.command: /opt/utilikit/venv/bin/playwright install --with-deps chromium
+  environment:
+    PLAYWRIGHT_BROWSERS_PATH: /opt/utilikit/ms-playwright
+  args:
+    creates: /opt/utilikit/ms-playwright
+  when: utilikit_with_browser | default(true) | bool
+
+- name: Fix Playwright ownership
+  ansible.builtin.file:
+    path: /opt/utilikit/ms-playwright
+    owner: utilikit
+    group: utilikit
+    recurse: true
+  when: utilikit_with_browser | default(true) | bool
+
+- name: Render env file
+  ansible.builtin.template:
+    src: utilikit.env.j2
+    dest: /etc/utilikit/utilikit.env
+    owner: root
+    group: utilikit
+    mode: "0640"
+  notify: restart utilikit
+
+- name: Install systemd unit
+  ansible.builtin.copy:
+    src: /opt/utilikit/src/deploy/systemd/utilikit.service
+    remote_src: true
+    dest: /etc/systemd/system/utilikit.service
+    mode: "0644"
+  notify:
+    - reload systemd
+    - restart utilikit
+
+- name: Enable + start
+  ansible.builtin.systemd:
+    name: utilikit.service
+    state: started
+    enabled: true
+
+- name: Health check
+  ansible.builtin.uri:
+    url: http://127.0.0.1:8400/healthz
+    status_code: 200
+  register: health
+  retries: 10
+  delay: 3
+  until: health.status == 200

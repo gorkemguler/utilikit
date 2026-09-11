@@ -1,0 +1,9 @@
+---
+# Provision Utilikit:  ansible-playbook -i inventory.ini site.yml
+# Re-run to update to the latest commit on utilikit_ref.
+
+- name: Utilikit
+  hosts: utilikit
+  become: true
+  roles:
+    - utilikit

@@ -1,0 +1,34 @@
+[Unit]
+Description=Utilikit — self-hostable HTTP toolbox API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=utilikit
+Group=utilikit
+EnvironmentFile=/etc/utilikit/utilikit.env
+Environment=UTILIKIT_DATA_DIR=/var/lib/utilikit
+Environment=PLAYWRIGHT_BROWSERS_PATH=/opt/utilikit/ms-playwright
+ExecStart=/opt/utilikit/venv/bin/utilikit serve
+Restart=on-failure
+RestartSec=5
+StateDirectory=utilikit
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/utilikit
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictNamespaces=true
+# Chromium needs a user namespace / clone; loosen if you enable the browser.
+# If screenshots fail with sandbox errors, comment the next line out.
+SystemCallFilter=@system-service
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,24 @@
+# Utilikit - one container, everything included.
+#
+#   docker compose up --build   ->   http://localhost:8400
+
+services:
+  utilikit:
+    build: .
+    environment:
+      # Set a key (or several, comma-separated) before exposing beyond localhost.
+      UTILIKIT_API_KEYS: ""
+      UTILIKIT_ALLOW_PRIVATE_FETCH: "false"
+      UTILIKIT_RATE_LIMIT_PER_MIN: "120"
+      # UTILIKIT_PUBLIC_BASE_URL: "https://tools.example.com"
+      UTILIKIT_BROWSER_CONCURRENCY: "1"
+    ports:
+      - "8400:8400"
+    volumes:
+      - utilikit-data:/data
+    restart: unless-stopped
+    # Chromium needs a little more than the default shm.
+    shm_size: "512mb"
+
+volumes:
+  utilikit-data:

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Utilikit</title>
+  <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header>
+    <div class="header-row">
+      <h1><img src="/static/logo.svg" class="logo" alt=""> Utilikit</h1>
+      <button id="langToggle" class="lang-btn" type="button" title="Türkçe / English">TR</button>
+    </div>
+    <p data-en="A self-hostable HTTP toolbox - {{ tools | length }} tools across {{ categories | length }} categories."
+       data-tr="{{ tagline_tr }}">
+      A self-hostable HTTP toolbox - {{ tools | length }} tools across {{ categories | length }} categories.
+    </p>
+    <div class="meta">
+      <a href="/docs" data-en="OpenAPI docs" data-tr="{{ ui.nav_docs }}">OpenAPI docs</a>
+      <span class="dot">&middot;</span>
+      <a href="/v1/tools" data-en="tools JSON" data-tr="{{ ui.nav_tools_json }}">tools JSON</a>
+      <span class="dot">&middot;</span>
+      <a href="/healthz" data-en="health" data-tr="{{ ui.nav_health }}">health</a>
+      <span class="dot">&middot;</span>
+      <a href="/metrics" data-en="metrics" data-tr="{{ ui.nav_metrics }}">metrics</a>
+      <span class="dot">&middot;</span>
+      <span data-en="auth:" data-tr="{{ ui.auth_label }}">auth:</span>
+      <code data-en="{{ 'X-API-Key required' if auth_required else 'open (no key)' }}"
+            data-tr="{{ ui.auth_required if auth_required else ui.auth_open }}">{{ "X-API-Key required" if auth_required else "open (no key)" }}</code>
+      <span class="dot">&middot;</span>
+      <span data-en="capture:" data-tr="{{ ui.capture_label }}">capture:</span>
+      <code data-en="{{ 'enabled' if browser_enabled else 'disabled' }}"
+            data-tr="{{ ui.capture_enabled if browser_enabled else ui.capture_disabled }}">{{ "enabled" if browser_enabled else "disabled" }}</code>
+      <span class="dot">&middot;</span>
+      <span>v{{ version }}</span>
+    </div>
+  </header>
+  <main>
+    <section class="quickstart">
+      <div class="qs-head">
+        <h2 data-en="Usage examples" data-tr="{{ ui.quickstart_title }}">Usage examples</h2>
+        <p class="qs-sub" data-en="Copy, paste, go. No SDK, no auth needed by default."
+           data-tr="{{ ui.quickstart_sub }}">Copy, paste, go. No SDK, no auth needed by default.</p>
+      </div>
+      <div class="qs-grid">
+        <div class="qs-card">
+          <div class="qs-bar">
+            <span class="qs-dot"></span><span class="qs-dot"></span><span class="qs-dot"></span>
+            <span class="qs-title" data-en="Domain WHOIS" data-tr="{{ ui.qs_whois_title }}">Domain WHOIS</span>
+          </div>
+          <pre><code>curl 'localhost:8400/v1/whois/domain?domain=example.com'</code></pre>
+          <p class="qs-returns">
+            <span data-en="returns:" data-tr="{{ ui.returns_label }}">returns:</span>
+            <span data-en="registrar, dates, nameservers, DNSSEC status" data-tr="{{ ui.qs_whois_returns }}">registrar, dates, nameservers, DNSSEC status</span>
+          </p>
+        </div>
+        <div class="qs-card">
+          <div class="qs-bar">
+            <span class="qs-dot"></span><span class="qs-dot"></span><span class="qs-dot"></span>
+            <span class="qs-title" data-en="DNS records" data-tr="{{ ui.qs_dns_title }}">DNS records</span>
+          </div>
+          <pre><code>curl 'localhost:8400/v1/dns/records?name=example.com&amp;types=A,MX,TXT'</code></pre>
+          <p class="qs-returns">
+            <span data-en="returns:" data-tr="{{ ui.returns_label }}">returns:</span>
+            <span data-en="records per requested type, with TTLs" data-tr="{{ ui.qs_dns_returns }}">records per requested type, with TTLs</span>
+          </p>
+        </div>
+        <div class="qs-card">
+          <div class="qs-bar">
+            <span class="qs-dot"></span><span class="qs-dot"></span><span class="qs-dot"></span>
+            <span class="qs-title" data-en="Screenshot" data-tr="{{ ui.qs_screenshot_title }}">Screenshot</span>
+          </div>
+          <pre><code>curl -o shot.png 'localhost:8400/v1/screenshot?url=https://example.com&amp;full_page=true'</code></pre>
+          <p class="qs-returns">
+            <span data-en="returns:" data-tr="{{ ui.returns_label }}">returns:</span>
+            <span data-en="full-page PNG, as raw bytes" data-tr="{{ ui.qs_screenshot_returns }}">full-page PNG, as raw bytes</span>
+          </p>
+        </div>
+        <div class="qs-card">
+          <div class="qs-bar">
+            <span class="qs-dot"></span><span class="qs-dot"></span><span class="qs-dot"></span>
+            <span class="qs-title" data-en="Multi-hash" data-tr="{{ ui.qs_hash_title }}">Multi-hash</span>
+          </div>
+          <pre><code>curl localhost:8400/v1/hash \
+  -H 'content-type: application/json' \
+  -d '{"text":"hello","algorithms":["sha256","blake2b"]}'</code></pre>
+          <p class="qs-returns">
+            <span data-en="returns:" data-tr="{{ ui.returns_label }}">returns:</span>
+            <span data-en="the computed digest for each algorithm" data-tr="{{ ui.qs_hash_returns }}">the computed digest for each algorithm</span>
+          </p>
+        </div>
+        <div class="qs-card">
+          <div class="qs-bar">
+            <span class="qs-dot"></span><span class="qs-dot"></span><span class="qs-dot"></span>
+            <span class="qs-title" data-en="QR code" data-tr="{{ ui.qs_qr_title }}">QR code</span>
+          </div>
+          <pre><code>curl -o qr.svg 'localhost:8400/v1/qr?text=https://example.com&amp;format=svg'</code></pre>
+          <p class="qs-returns">
+            <span data-en="returns:" data-tr="{{ ui.returns_label }}">returns:</span>
+            <span data-en="the QR code image, as SVG or PNG" data-tr="{{ ui.qs_qr_returns }}">the QR code image, as SVG or PNG</span>
+          </p>
+        </div>
+        <div class="qs-card">
+          <div class="qs-bar">
+            <span class="qs-dot"></span><span class="qs-dot"></span><span class="qs-dot"></span>
+            <span class="qs-title" data-en="Random password" data-tr="{{ ui.qs_password_title }}">Random password</span>
+          </div>
+          <pre><code>curl 'localhost:8400/v1/password?length=24&amp;symbols=true'</code></pre>
+          <p class="qs-returns">
+            <span data-en="returns:" data-tr="{{ ui.returns_label }}">returns:</span>
+            <span data-en="the password and an estimated crack time" data-tr="{{ ui.qs_password_returns }}">the password and an estimated crack time</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <div class="filter">
+      <button class="active" data-cat="all" data-en="all" data-tr="{{ ui.filter_all }}">all</button>
+      {% for c in categories %}
+      <button data-cat="{{ c.en }}" data-en="{{ c.en }}" data-tr="{{ c.tr }}">{{ c.en }}</button>
+      {% endfor %}
+    </div>
+
+    {% for c in categories %}
+    <section class="catgroup" data-cat="{{ c.en }}">
+      <div class="cat" data-en="{{ c.en }}" data-tr="{{ c.tr }}">{{ c.en }}</div>
+      <div class="grid">
+        {% for t in tools if t.category == c.en %}
+        <div class="tool">
+          <h3 data-en="{{ t.title.en }}" data-tr="{{ t.title.tr }}">{{ t.title.en }}</h3>
+          {% if t.requires %}
+          <span class="req">
+            <span data-en="needs:" data-tr="{{ ui.needs_label }}">needs:</span>
+            {{ t.requires | join(", ") }}
+          </span>
+          {% endif %}
+          <p class="desc" data-en="{{ t.description.en }}" data-tr="{{ t.description.tr }}">{{ t.description.en }}</p>
+          <div class="endpoints">
+            {% for e in t.endpoints %}
+            <div class="endpoint">
+              <div class="ep">
+                <span class="verb {{ e.method }}">{{ e.method }}</span>
+                <code>{{ e.path }}</code>
+                <span class="summary" data-en="{{ e.summary.en }}" data-tr="{{ e.summary.tr }}">{{ e.summary.en }}</span>
+                {% if e.method == "GET" and e.example.startswith("?") %}
+                <a class="try" href="{{ e.path }}{{ e.example }}" target="_blank" rel="noopener"
+                   data-en="try &rarr;" data-tr="{{ ui.try_label }}">try &rarr;</a>
+                {% endif %}
+              </div>
+              {% if e.example %}
+              <div class="example">
+                <span class="tag" data-en="e.g." data-tr="{{ ui.example_label }}">e.g.</span>
+                <code>{{ e.example }}</code>
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+  </main>
+  <footer data-en="Point your own tools at this server. See GET /v1/tools for a machine-readable catalogue."
+          data-tr="{{ ui.footer }}">
+    Point your own tools at this server. See <code>GET /v1/tools</code> for a machine-readable catalogue.
+  </footer>
+  <script>
+    // --- category filter -----------------------------------------------
+    const buttons = document.querySelectorAll(".filter button");
+    buttons.forEach(b => b.addEventListener("click", () => {
+      buttons.forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+      const cat = b.dataset.cat;
+      document.querySelectorAll(".catgroup").forEach(s => {
+        s.hidden = !(cat === "all" || s.dataset.cat === cat);
+      });
+    }));
+
+    // --- EN / TR toggle, remembered per browser -------------------------
+    const langBtn = document.getElementById("langToggle");
+    function applyLang(lang) {
+      document.querySelectorAll("[data-en]").forEach(el => {
+        const text = lang === "tr" ? (el.dataset.tr || el.dataset.en) : el.dataset.en;
+        // Elements whose only child should be the label (keep nested tags, e.g. <code>, intact
+        // by writing to a dedicated text node when present, otherwise just set textContent).
+        el.textContent = text;
+      });
+      document.documentElement.lang = lang;
+      langBtn.textContent = lang === "tr" ? "EN" : "TR";
+      try { localStorage.setItem("utilikit-lang", lang); } catch (e) {}
+    }
+    let lang = "en";
+    try { lang = localStorage.getItem("utilikit-lang") || "en"; } catch (e) {}
+    applyLang(lang);
+    langBtn.addEventListener("click", () => applyLang(lang === "tr" ? (lang = "en") : (lang = "tr")));
+  </script>
+</body>
+</html>

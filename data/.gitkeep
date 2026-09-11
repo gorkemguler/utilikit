@@ -1,0 +1,2 @@
+# Put an optional GeoLite2 / DB-IP .mmdb here for the `ip/info` geo field.
+# Runtime state (the SQLite DB for the request bin + shortener) lives in ../var/.
